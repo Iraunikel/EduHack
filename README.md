@@ -18,10 +18,22 @@ A lightweight, local tool that transforms unstructured, multilingual educational
 pip install -r requirements.txt
 ```
 
-2. Install Ollama (for local LLM):
+2. Install system dependencies for python-magic:
+```bash
+# On macOS:
+brew install libmagic
+
+# On Linux:
+sudo apt-get install libmagic1  # Debian/Ubuntu
+# or
+sudo yum install file-devel      # RHEL/CentOS
+```
+
+3. Install Ollama (for local LLM):
 ```bash
 # Follow instructions at https://ollama.ai
-ollama pull mistral
+ollama pull deepseek-coder:6.7b
+# Or use any other model you prefer
 ```
 
 ## Usage

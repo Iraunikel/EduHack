@@ -6,53 +6,44 @@ from pathlib import Path
 from datetime import datetime
 
 from langdetect import detect, LangDetectException
+import magic
 
 import config
 from models import FileMetadata
 
 logger = logging.getLogger(__name__)
 
-try:
-    import magic
-    MAGIC_AVAILABLE = True
-except ImportError:
-    MAGIC_AVAILABLE = False
-    logger.warning("python-magic not available, using file extension detection only")
-
 
 def detect_file_type(file_path: Path) -> str:
     """Detect file type from file path and content."""
     suffix = file_path.suffix.lower()
-    if suffix == ".pdf":
-        return "pdf"
-    if suffix == ".docx":
-        return "docx"
-    if suffix == ".csv":
-        return "csv"
-    if suffix == ".txt":
-        return "txt"
-    if suffix == ".json":
-        return "json"
-    if suffix == ".html":
-        return "html"
-    if MAGIC_AVAILABLE:
-        try:
-            mime = magic.Magic(mime=True)
-            mime_type = mime.from_file(str(file_path))
-            if "pdf" in mime_type:
-                return "pdf"
-            if "word" in mime_type or "document" in mime_type:
-                return "docx"
-            if "csv" in mime_type or "text/csv" in mime_type:
-                return "csv"
-            if "text" in mime_type:
-                return "txt"
-            if "json" in mime_type:
-                return "json"
-            if "html" in mime_type:
-                return "html"
-        except Exception as e:
-            logger.warning(f"Could not detect MIME type for {file_path}: {e}")
+    suffix_map = {
+        ".pdf": "pdf",
+        ".docx": "docx",
+        ".csv": "csv",
+        ".txt": "txt",
+        ".json": "json",
+        ".html": "html",
+    }
+    if suffix in suffix_map:
+        return suffix_map[suffix]
+    try:
+        mime = magic.Magic(mime=True)
+        mime_type = mime.from_file(str(file_path))
+        if "pdf" in mime_type:
+            return "pdf"
+        if "word" in mime_type or "document" in mime_type:
+            return "docx"
+        if "csv" in mime_type or "text/csv" in mime_type:
+            return "csv"
+        if "text" in mime_type:
+            return "txt"
+        if "json" in mime_type:
+            return "json"
+        if "html" in mime_type:
+            return "html"
+    except Exception as e:
+        logger.warning(f"Could not detect MIME type for {file_path}: {e}")
     return "unknown"
 
 
@@ -110,19 +101,43 @@ def format_detection_result(file_path: Path, file_type: str, language: str, meta
     )
 
 
+def extract_sample_text(file_path: Path, file_type: str, encoding: str = "utf-8") -> str:
+    """Extract sample text from file for language detection."""
+    sample_text = ""
+    try:
+        if file_type == "txt" or file_type == "csv":
+            with open(file_path, "r", encoding=encoding) as f:
+                sample_text = f.read(1000)
+        elif file_type == "pdf":
+            import pdfplumber
+            with pdfplumber.open(file_path) as pdf:
+                if len(pdf.pages) > 0:
+                    page = pdf.pages[0]
+                    page_text = page.extract_text()
+                    if page_text:
+                        sample_text = page_text[:1000]
+        elif file_type == "docx":
+            import docx
+            doc = docx.Document(file_path)
+            para_index = 0
+            while para_index < len(doc.paragraphs) and len(sample_text) < 1000:
+                para = doc.paragraphs[para_index]
+                if para.text:
+                    sample_text += para.text + " "
+                para_index += 1
+            sample_text = sample_text[:1000]
+    except Exception as e:
+        logger.warning(f"Could not extract sample text from {file_path}: {e}")
+    return sample_text
+
+
 def detect_format_and_language(file_path: Path, sample_text: str = None) -> FileMetadata:
     """Main detector agent: detects file format and language."""
     logger.info(f"Detecting format and language for {file_path}")
     file_type = detect_file_type(file_path)
     metadata_dict = extract_metadata(file_path)
     if sample_text is None:
-        sample_text = ""
-        try:
-            if file_type == "txt" or file_type == "csv":
-                with open(file_path, "r", encoding=metadata_dict.get("encoding", "utf-8")) as f:
-                    sample_text = f.read(1000)
-        except Exception as e:
-            logger.warning(f"Could not read sample text from {file_path}: {e}")
+        sample_text = extract_sample_text(file_path, file_type, metadata_dict.get("encoding", "utf-8"))
     language = detect_language(sample_text)
     result = format_detection_result(file_path, file_type, language, metadata_dict)
     logger.info(f"Detected: type={file_type}, language={language}")

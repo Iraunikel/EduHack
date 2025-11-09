@@ -30,7 +30,7 @@ VECTOR_DB_COLLECTION = "edalo_documents"
 
 # Ollama settings
 OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "mistral"
+OLLAMA_MODEL = "deepseek-coder:6.7b"
 
 # Output formats
 OUTPUT_JSONL = OUTPUT_DIR / "output.jsonl"
