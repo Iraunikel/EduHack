@@ -1,17 +1,64 @@
 """Agent 1: Format & Language Detector."""
 
 import logging
-import os
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, TYPE_CHECKING
 
 from langdetect import detect, LangDetectException
-import magic
+import mimetypes
+
+try:  # pragma: no cover - exercised in environments with libmagic installed
+    import magic  # type: ignore
+except ImportError:  # pragma: no cover - python-magic is optional
+    magic = None
+
+if TYPE_CHECKING:  # pragma: no cover - typing aid only
+    from magic import Magic  # type: ignore
 
 import config
 from models import FileMetadata
 
 logger = logging.getLogger(__name__)
+
+
+_magic_instance = None
+_magic_error = False
+
+
+def _normalise_mime(mime_type: Optional[str]) -> Optional[str]:
+    """Map MIME type strings to the detector's format labels."""
+    if not mime_type:
+        return None
+    mime_type = mime_type.lower()
+    if "pdf" in mime_type:
+        return "pdf"
+    if "word" in mime_type or "document" in mime_type:
+        return "docx"
+    if "csv" in mime_type or "text/csv" in mime_type:
+        return "csv"
+    if "json" in mime_type:
+        return "json"
+    if "html" in mime_type:
+        return "html"
+    if "text" in mime_type:
+        return "txt"
+    return None
+
+
+def _get_magic() -> Optional["Magic"]:
+    """Return a cached python-magic detector if the dependency is available."""
+    global _magic_instance, _magic_error
+    if magic is None or _magic_error:
+        return None
+    if _magic_instance is None:
+        try:
+            _magic_instance = magic.Magic(mime=True)
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Failed to initialise libmagic: %s", exc)
+            _magic_error = True
+            return None
+    return _magic_instance
 
 
 def detect_file_type(file_path: Path) -> str:
@@ -27,23 +74,21 @@ def detect_file_type(file_path: Path) -> str:
     }
     if suffix in suffix_map:
         return suffix_map[suffix]
-    try:
-        mime = magic.Magic(mime=True)
-        mime_type = mime.from_file(str(file_path))
-        if "pdf" in mime_type:
-            return "pdf"
-        if "word" in mime_type or "document" in mime_type:
-            return "docx"
-        if "csv" in mime_type or "text/csv" in mime_type:
-            return "csv"
-        if "text" in mime_type:
-            return "txt"
-        if "json" in mime_type:
-            return "json"
-        if "html" in mime_type:
-            return "html"
-    except Exception as e:
-        logger.warning(f"Could not detect MIME type for {file_path}: {e}")
+
+    magic_detector = _get_magic()
+    if magic_detector is not None:
+        try:
+            detected = _normalise_mime(magic_detector.from_file(str(file_path)))
+            if detected:
+                return detected
+        except Exception as exc:
+            logger.warning("Could not detect MIME type for %s: %s", file_path, exc)
+
+    guessed, _ = mimetypes.guess_type(file_path.name)
+    detected = _normalise_mime(guessed)
+    if detected:
+        return detected
+
     return "unknown"
 
 
