@@ -4,7 +4,9 @@ import logging
 import re
 import uuid
 from pathlib import Path
-from typing import List
+from typing import Iterable, List
+import json
+from collections.abc import Mapping, Sequence
 
 import pdfplumber
 import docx
@@ -78,6 +80,24 @@ def extract_text_html(file_path: Path, encoding: str = "utf-8") -> str:
     return text
 
 
+def _flatten_json(value) -> Iterable[str]:
+    """Yield string representations from arbitrary JSON structures."""
+    if value is None:
+        return
+    if isinstance(value, str):
+        yield value
+        return
+    if isinstance(value, Mapping):
+        for item in value.values():
+            yield from _flatten_json(item)
+        return
+    if isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray)):
+        for item in value:
+            yield from _flatten_json(item)
+        return
+    yield str(value)
+
+
 def extract_text(file_path: Path, file_type: str, encoding: str = "utf-8") -> str:
     """Extract text based on file type."""
     if file_type == "pdf":
@@ -88,6 +108,14 @@ def extract_text(file_path: Path, file_type: str, encoding: str = "utf-8") -> st
         return extract_text_csv(file_path, encoding)
     if file_type == "html":
         return extract_text_html(file_path, encoding)
+    if file_type == "json":
+        try:
+            with open(file_path, "r", encoding=encoding) as f:
+                data = json.load(f)
+        except Exception as e:
+            logger.error(f"Error parsing JSON file {file_path}: {e}")
+            return ""
+        return "\n".join(item.strip() for item in _flatten_json(data) if item.strip())
     if file_type == "txt":
         try:
             with open(file_path, "r", encoding=encoding) as f:
