@@ -1,0 +1,170 @@
+# Edalo Project Rules
+
+## Code Style and Constraints
+
+### Function Constraints
+- Maximum 25 lines per function
+- Maximum 5 functions per file
+- Use while loops instead of for loops
+- No ternaries (use if/else statements instead)
+
+### Code Quality
+- All functions must have docstrings
+- Document parameters and return values
+- Use descriptive variable names
+- Keep functions focused on a single responsibility
+
+### Architecture
+- Follow the 4-agent architecture: Detector, Optimizer, Embeddings, Evaluator
+- Pipeline orchestrator coordinates agents
+- Data flows through models (FileMetadata, TextChunk, ProcessedDocument, PipelineResults)
+- Output formats: JSONL, SQLite, ChromaDB
+
+## Change Management
+
+### Before Making Changes
+- Understand the current state of the code
+- Get approval for significant changes
+- Plan changes in small, incremental steps
+- Review WORKFLOW.md for process details
+
+### Making Changes
+- Make small, focused commits
+- Use clear, descriptive commit messages
+- Follow commit message format from WORKFLOW.md
+- Update CHANGELOG.md with all changes
+- Test changes before committing
+
+### After Making Changes
+- Verify code follows all constraints
+- Update documentation if needed
+- Run tests to ensure nothing breaks
+- Review changes before committing
+
+## Project Structure
+
+### File Organization
+- Agents in `agents/` directory
+- Main pipeline in `pipeline.py`
+- Data models in `models.py`
+- Output writers in `output.py`
+- CLI interface in `cli.py`
+- Configuration in `config.py`
+- Utilities in `utils.py`
+- Tests in `tests/` directory
+
+### Dependencies
+- Local execution only (no external APIs)
+- Use existing dependencies from requirements.txt
+- Document any new dependencies in CHANGELOG.md
+
+## Communication
+
+### When Implementing Changes
+- Explain what you're changing and why
+- Show examples if helpful
+- Ask for clarification if requirements are unclear
+- Don't implement changes that aren't fully understood
+
+### Documentation
+- Keep README.md up to date
+- Document architecture changes in CHANGELOG.md
+- Update WORKFLOW.md if process changes
+- Add docstrings to all functions
+
+## Testing
+
+### Test Requirements
+- Test new functionality before committing
+- Use test data from `tests/test_data/`
+- Generate test data using `tests/generate_test_data.py`
+- Verify constraints are followed (function length, file structure)
+
+## Error Handling
+
+### Graceful Degradation
+- Handle missing dependencies gracefully
+- Provide fallback options when possible
+- Log warnings for non-critical issues
+- Fail gracefully with clear error messages
+
+## Examples
+
+### Good Function (under 25 lines, single responsibility)
+```python
+def detect_file_type(file_path: Path) -> str:
+    """Detect file type from file path and content."""
+    suffix = file_path.suffix.lower()
+    if suffix == ".pdf":
+        return "pdf"
+    # ... more file type checks
+    return "unknown"
+```
+
+### Good Loop (while instead of for)
+```python
+file_index = 0
+while file_index < len(files):
+    file_path = files[file_index]
+    process_file(file_path)
+    file_index += 1
+```
+
+### Good Conditional (no ternary)
+```python
+if condition:
+    result = value_a
+else:
+    result = value_b
+```
+
+## Prohibited Patterns
+
+### Don't Use For Loops
+```python
+# BAD
+for file in files:
+    process_file(file)
+
+# GOOD
+file_index = 0
+while file_index < len(files):
+    process_file(files[file_index])
+    file_index += 1
+```
+
+### Don't Use Ternaries
+```python
+# BAD
+result = value_a if condition else value_b
+
+# GOOD
+if condition:
+    result = value_a
+else:
+    result = value_b
+```
+
+### Don't Exceed Function Length
+```python
+# BAD - function over 25 lines
+def long_function():
+    # ... 30+ lines of code ...
+
+# GOOD - break into smaller functions
+def short_function_part1():
+    # ... under 25 lines ...
+
+def short_function_part2():
+    # ... under 25 lines ...
+```
+
+## Remember
+
+- Always follow project constraints
+- Get approval for significant changes
+- Document all changes in CHANGELOG.md
+- Keep commits small and focused
+- Test before committing
+- Update documentation as needed
+

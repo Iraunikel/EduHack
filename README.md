@@ -50,6 +50,8 @@ The pipeline consists of 4 agents:
 3. **Embedding Generator**: Creates multilingual embeddings
 4. **Evaluator**: Measures performance and relevance
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture documentation.
+
 ## Testing
 
 Generate test data and run tests:
@@ -65,6 +67,12 @@ The pipeline generates:
 - `output.db`: SQLite database with processed documents
 - `chroma_db/`: Vector database with embeddings
 - `metrics.json`: Performance metrics and evaluation results
+
+## Documentation
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): Detailed architecture documentation
+- [WORKFLOW.md](WORKFLOW.md): Development workflow and change management process
+- [CHANGELOG.md](CHANGELOG.md): Project changelog and version history
 
 ## License
 
