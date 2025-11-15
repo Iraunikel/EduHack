@@ -12,16 +12,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md: Change tracking document
 - ARCHITECTURE.md: Detailed architecture documentation
 - .cursorrules: Project-specific coding rules
+- Luxembourgish (lb) language detection support via Polyglot
 
 ### Changed
 - Reset project to first commit state (4fbb45e) to establish clean baseline
 - Established sustainable workflow for future changes
 - Updated README.md with links to new documentation
+- Replaced langdetect with Polyglot for language detection
+  - Polyglot supports 130+ languages including Luxembourgish (lb)
+  - Fully offline/local processing - no cloud services or data sharing
+  - Requires language model download: `polyglot download LANG:lb`
+  - May require system ICU library installation (e.g., `brew install icu4c` on macOS)
 
 ### Removed
 - cursor_optimizing_multilingual_educatio.md: Removed conversation history file
 - tests/EVALUATION_METHODOLOGY.md: Removed (was added after first commit)
 - tests/TEST_REPORT.md: Removed (was added after first commit)
+- langdetect dependency (replaced with Polyglot)
 
 ### Notes
 - First commit contains some constraint violations:

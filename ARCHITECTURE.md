@@ -25,7 +25,7 @@ Input Files → Detector → Optimizer → Embeddings → Evaluator → Output
 
 **Functions**:
 - `detect_file_type(file_path)`: Detects file type from extension and MIME type
-- `detect_language(text)`: Detects language using langdetect
+- `detect_language(text)`: Detects language using Polyglot (supports 130+ languages including Luxembourgish)
 - `extract_metadata(file_path)`: Extracts file metadata (size, dates, encoding)
 - `format_detection_result(...)`: Formats results into FileMetadata object
 - `detect_format_and_language(file_path)`: Main orchestrator function
@@ -34,7 +34,8 @@ Input Files → Detector → Optimizer → Embeddings → Evaluator → Output
 **Output**: FileMetadata object
 
 **Dependencies**:
-- `langdetect`: Language detection
+- `polyglot`: Language detection (supports 130+ languages including Luxembourgish)
+- `pycld2`: Compact Language Detector 2 (used by Polyglot)
 - `python-magic`: MIME type detection (optional, falls back to extension)
 
 ### Agent 2: Optimizer (`agents/optimizer.py`)
@@ -242,7 +243,8 @@ Tests the pipeline with generated test data:
 ## Dependencies
 
 ### Core Dependencies
-- `langdetect`: Language detection
+- `polyglot`: Language detection (supports 130+ languages including Luxembourgish)
+- `pycld2`: Compact Language Detector 2 (used by Polyglot)
 - `pdfplumber`: PDF text extraction
 - `python-docx`: DOCX parsing
 - `beautifulsoup4`: HTML parsing
@@ -253,8 +255,18 @@ Tests the pipeline with generated test data:
 - `python-magic`: File type detection (optional)
 
 ### System Dependencies
+- `libicu-dev` (Linux) or `icu4c` (macOS): Required for Polyglot language detection
 - `libmagic`: For python-magic (macOS: `brew install libmagic`, Linux: `apt-get install libmagic1`)
 - `Ollama`: Local LLM server (https://ollama.ai)
+
+### Language Models
+- Polyglot language models must be downloaded after installation:
+  ```bash
+  polyglot download LANG:fr  # French
+  polyglot download LANG:de  # German
+  polyglot download LANG:en  # English
+  polyglot download LANG:lb  # Luxembourgish
+  ```
 
 ## File Structure
 

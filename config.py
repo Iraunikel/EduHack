@@ -25,7 +25,9 @@ CHUNK_OVERLAP = 50
 FUZZY_MATCH_THRESHOLD = 0.85
 
 # Vector DB settings
+# Description: The path to the vector database that will be used to store the embeddings.
 VECTOR_DB_PATH = OUTPUT_DIR / "chroma_db"
+# Description: The name of the collection that will be used to store the embeddings.
 VECTOR_DB_COLLECTION = "edalo_documents"
 
 # Ollama settings

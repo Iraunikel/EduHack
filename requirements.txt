@@ -1,4 +1,7 @@
-langdetect==1.0.9
+polyglot==16.7.4
+pycld2==0.42
+pyicu==2.16
+morfessor==2.0.6
 pdfplumber==0.11.0
 python-docx==1.1.0
 beautifulsoup4==4.12.3

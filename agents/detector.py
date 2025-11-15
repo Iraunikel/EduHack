@@ -5,12 +5,18 @@ import os
 from pathlib import Path
 from datetime import datetime
 
-from langdetect import detect, LangDetectException
-
 import config
 from models import FileMetadata
 
 logger = logging.getLogger(__name__)
+
+try:
+    from polyglot.detect import Detector
+    POLYGLOT_AVAILABLE = True
+except ImportError:
+    POLYGLOT_AVAILABLE = False
+    Detector = None
+    logger.warning("polyglot not available, language detection will fail")
 
 try:
     import magic
@@ -60,10 +66,16 @@ def detect_language(text: str) -> str:
     """Detect language of text content."""
     if not text or len(text.strip()) < 10:
         return "unknown"
+    if not POLYGLOT_AVAILABLE:
+        logger.warning("Polyglot not available, cannot detect language")
+        return "unknown"
     try:
-        lang = detect(text)
-        return lang
-    except LangDetectException as e:
+        detector = Detector(text)
+        lang_code = detector.language.code
+        if lang_code is None:
+            return "unknown"
+        return lang_code
+    except Exception as e:
         logger.warning(f"Language detection failed: {e}")
         return "unknown"
 

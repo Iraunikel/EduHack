@@ -18,7 +18,26 @@ A lightweight, local tool that transforms unstructured, multilingual educational
 pip install -r requirements.txt
 ```
 
-2. Install Ollama (for local LLM):
+2. Install language models for Polyglot (required for language detection):
+```bash
+# Download language models for supported languages
+polyglot download LANG:fr  # French
+polyglot download LANG:de  # German
+polyglot download LANG:en  # English
+polyglot download LANG:lb  # Luxembourgish
+```
+
+Note: On macOS, you may need to install ICU library first:
+```bash
+brew install icu4c
+```
+
+On Linux (Ubuntu/Debian):
+```bash
+sudo apt-get install libicu-dev
+```
+
+3. Install Ollama (for local LLM):
 ```bash
 # Follow instructions at https://ollama.ai
 ollama pull mistral
