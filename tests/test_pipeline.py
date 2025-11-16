@@ -28,11 +28,11 @@ def run_raw_data_test(test_data_dir: Path):
     """Run test with raw data."""
     logger.info("Running raw data test")
     results = pipeline.run_pipeline(
-        input_path=test_data_dir,
-        generate_embeddings_flag=False,
-        evaluate=False,
+        input_path=test_data_dir, # path to the test data directory
+        generate_embeddings_flag=False, # flag to generate embeddings
+        evaluate=False, # flag to evaluate the pipeline
     )
-    return results
+    return results # returns the results of the pipeline
 
 
 def run_optimized_data_test(test_data_dir: Path, query: str, ground_truth: str):
