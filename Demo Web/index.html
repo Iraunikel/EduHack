@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edalo 4-Agent Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Edalo - Educational Data LLM Optimizer</h1>
+      <p class="subtitle">4-Agent pipeline: Detector → Optimizer → Embeddings → Evaluator</p>
+    </header>
+    <nav class="stepper">
+      <button class="step-button active" data-step="1">1. Detector</button>
+      <button class="step-button" data-step="2">2. Optimizer</button>
+      <button class="step-button" data-step="3">3. Embeddings</button>
+      <button class="step-button" data-step="4">4. Evaluator</button>
+    </nav>
+    <main class="content">
+      <section class="panel panel-left">
+        <h2 id="panel-title">Input</h2>
+        <div id="panel-left-body" class="panel-body"></div>
+        <button id="action-button" class="primary-button">Run Detector</button>
+      </section>
+      <section class="panel panel-right">
+        <h2>Output</h2>
+        <div id="panel-right-body" class="panel-body"></div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div id="status-text" class="status-text"></div>
+      <div class="badges">
+        <span class="badge badge-jsonl">JSONL</span>
+        <span class="badge badge-sqlite">SQLite</span>
+        <span class="badge badge-chroma">ChromaDB</span>
+        <span class="badge badge-metrics">Metrics</span>
+      </div>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+
+

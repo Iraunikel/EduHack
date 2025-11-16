@@ -1,9 +1,11 @@
 """Agent 1: Format & Language Detector."""
 
 import logging
-import os
 from pathlib import Path
 from datetime import datetime
+
+import pdfplumber
+import docx
 
 import config
 from models import FileMetadata
@@ -66,18 +68,43 @@ def detect_language(text: str) -> str:
     """Detect language of text content."""
     if not text or len(text.strip()) < 10:
         return "unknown"
-    if not POLYGLOT_AVAILABLE:
-        logger.warning("Polyglot not available, cannot detect language")
-        return "unknown"
-    try:
-        detector = Detector(text)
-        lang_code = detector.language.code
-        if lang_code is None:
-            return "unknown"
-        return lang_code
-    except Exception as e:
-        logger.warning(f"Language detection failed: {e}")
-        return "unknown"
+    if POLYGLOT_AVAILABLE:
+        try:
+            detector = Detector(text)
+            lang_code = detector.language.code
+            if lang_code is None:
+                return "unknown"
+            return lang_code
+        except Exception as e:
+            logger.warning(f"Language detection failed: {e}")
+    text_lower = text.lower()
+    languages = {
+        "en": [" the ", " and ", " students ", " course "],
+        "fr": [" le ", " la ", " les ", " cours ", " pratique "],
+        "de": [" der ", " die ", " und ", " kurs ", " praxis "],
+        "lb": [" ze ", " vill ", " praxis ", " cours ", " mir "],
+    }
+    best_lang = "unknown"
+    best_score = 0
+    for_lang = list(languages.keys())
+    index_lang = 0
+    while index_lang < len(for_lang):
+        lang = for_lang[index_lang]
+        keywords = languages[lang]
+        score = 0
+        index_kw = 0
+        while index_kw < len(keywords):
+            keyword = keywords[index_kw]
+            if keyword in text_lower:
+                score += 1
+            index_kw += 1
+        if score > best_score:
+            best_score = score
+            best_lang = lang
+        index_lang += 1
+    if best_score > 0:
+        return best_lang
+    return "unknown"
 
 
 def extract_metadata(file_path: Path) -> dict:
@@ -130,9 +157,29 @@ def detect_format_and_language(file_path: Path, sample_text: str = None) -> File
     if sample_text is None:
         sample_text = ""
         try:
+            encoding = metadata_dict.get("encoding", "utf-8")
             if file_type == "txt" or file_type == "csv":
-                with open(file_path, "r", encoding=metadata_dict.get("encoding", "utf-8")) as f:
+                with open(file_path, "r", encoding=encoding) as f:
                     sample_text = f.read(1000)
+            elif file_type == "pdf":
+                with pdfplumber.open(file_path) as pdf:
+                    if pdf.pages:
+                        page = pdf.pages[0]
+                        text_page = page.extract_text() or ""
+                        sample_text = text_page[:1000]
+            elif file_type == "docx":
+                document = docx.Document(file_path)
+                para_texts = []
+                para_index = 0
+                para_limit = min(len(document.paragraphs), 10)
+                while para_index < para_limit:
+                    para = document.paragraphs[para_index]
+                    if para.text:
+                        para_texts.append(para.text)
+                    para_index += 1
+                if para_texts:
+                    joined = " ".join(para_texts)
+                    sample_text = joined[:1000]
         except Exception as e:
             logger.warning(f"Could not read sample text from {file_path}: {e}")
     language = detect_language(sample_text)
